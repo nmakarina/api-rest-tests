@@ -1,0 +1,89 @@
+trigger: none
+parameters:
+  - name: server
+    displayName: server
+    type: string
+    values:
+      - DEV
+      - DEMO
+    default: DEMO
+  - name: user
+    displayName: server
+    type: string
+    values:
+      - USER
+      - ADM_USER
+    default: USER
+variables:
+- name: BuildParameters.mavenPOMFile
+  value: pom.xml
+schedules:
+- cron: 0 5 * * 1,2,3,4,5
+  branches:
+    include:
+    - refs/heads/main
+  always: true
+name: $(rev:r)
+jobs:
+- job: Job_1
+  displayName: API-тесты
+  timeoutInMinutes: 20
+  pool:
+    name: AT-POOL
+    demands:
+    - slave -equals at
+  steps:
+  - checkout: self
+  - task: Maven@3
+    displayName: Maven pom.xml
+    condition: succeededOrFailed()
+    inputs:
+      mavenPOMFile: $(BuildParameters.mavenPOMFile)
+      goals: clean test
+      options: -Psmoke -Dserver.user=${{ parameters.user }} -Dserver.name=${{ parameters.server }}
+  - task: CopyFiles@2
+    displayName: get history from inetpub
+    condition: succeededOrFailed()
+    inputs:
+      SourceFolder: C:\inetpub\wwwroot\at\history
+      Contents: '**/*.*'
+      TargetFolder: target\allure-results\history
+  - task: Maven@3
+    displayName: Allure Maven
+    condition: succeededOrFailed()
+    inputs:
+      mavenPOMFile: $(BuildParameters.mavenPOMFile)
+      goals: allure:report
+  - task: CopyFiles@2
+    displayName: 'Copy Files to: inetpub'
+    condition: succeededOrFailed()
+    inputs:
+      SourceFolder: target\site\allure-maven-plugin
+      Contents: '**/*.*'
+      TargetFolder: C:\inetpub\wwwroot\at\$(Build.BuildNumber)
+      CleanTargetFolder: true
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: drop'
+    condition: succeededOrFailed()
+    inputs:
+      PathtoPublish: $(build.artifactstagingdirectory)
+  - task: SendEmail@1
+    displayName: api test result
+    condition: succeededOrFailed()
+    enabled: True
+    inputs:
+      To: test.at@test.ru
+      CC: test.new@test.ru
+      From: test@test.ru
+      Subject: api test result
+      Body: >-
+        Результаты
+        https://<ci/cd url>
+
+        Отчет
+        ${{ parameters.tfsBuildUrl }}
+      SmtpServer: mail.test.ru
+      SmtpUsername: test
+      SmtpPassword: testpass!!
+      UseSSL: false
+...

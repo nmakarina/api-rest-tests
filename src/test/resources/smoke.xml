@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="API">
+
+    <listeners>
+        <listener class-name="meta.API_TestListener"/>
+    </listeners>
+    <test name="API" preserve-order="false">
+        <classes>
+            <class name="api.TestLogin"></class>
+        </classes>
+    </test>
+    <test name="Functions" preserve-order="false">
+        <classes>
+            <class name="api.TestUsersFunctions"></class>
+        </classes>
+    </test>
+</suite>
