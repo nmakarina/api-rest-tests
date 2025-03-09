@@ -14,7 +14,6 @@ public enum User {
     }
 
     public String getPassword() {
-        System.out.println("AT_"+User.this.name()+"_PASS");
         String pass = System.getProperty("AT_"+User.this.name()+"_PASS");
         if (pass == null || pass.isEmpty()) {
             pass = System.getenv("AT_"+User.this.name()+"_PASS");

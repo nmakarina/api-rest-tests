@@ -70,6 +70,14 @@ public class BaseApiTest extends TestFlow {
         return requestTo;
     }
 
+    @Step("Создать запрос")
+    public RequestTo getRequestTo(Method method, String server){
+        requestTo = new RequestTo(server);
+        requestTo.withMethod(method);
+        requestTo.withCookie(getCookies());
+        return requestTo;
+    }
+
     @Step("Получить cookie по названию {0}")
     public String getCookie(String name){
         return cookie.get(name);
@@ -122,14 +130,14 @@ public class BaseApiTest extends TestFlow {
         if (statusCode < 200 || statusCode > 202) {
             Assert.assertTrue(statusCode==200, "Response code is not 200 (success), but " + statusCode + ", and message:'" + result.getStatusLine() + "'");
         }
-        if (result.getBody().prettyPrint().contains("ResponseInfo")) {
+        if (result.getBody().asString().contains("ResponseInfo")) {
             JsonPath path = JsonPath.from(result.getBody().prettyPrint());
             Assert.assertEquals(path.getString("ResponseInfo.Status"), "0", "Status is not 0!\n"
                     + path.getString("ResponseInfo"));
         }
         String[] res = new String[2];
         res[0] = String.valueOf(result.statusCode());
-        res[1] = result.getBody().prettyPrint();
+        res[1] = result.getBody().asString();
         return res;
     }
 }

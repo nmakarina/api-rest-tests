@@ -28,5 +28,9 @@ public enum Server {
         return "/api/home/version";
     }
 
+    public String getUserData() {
+        return "/api/user/data";
+    }
+
 
 }
